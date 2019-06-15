@@ -9,9 +9,13 @@ def _load_secret_from_path(path: str) -> str:
         return secret_file.read().strip()
 
 
-def _load_from_run_secrets(name: str) -> str:
-    lowercase_name = name.lower()
-    path = f"/run/secrets/{lowercase_name}"
+def _load_from_run_secrets(name: str, lowercase: bool = True) -> str:
+    if lowercase:
+        formatted_name = name.lower()
+    else:
+        formatted_name = name
+
+    path = f"/run/secrets/{formatted_name}"
     return _load_secret_from_path(path)
 
 
@@ -26,7 +30,7 @@ def _load_from_environment_variable(name: str) -> str:
     return os.getenv(uppercase_name)
 
 
-def load(name: str, fallback: str = None) -> str:
+def load(name: str, fallback: str = None, lowercase: bool = True) -> str:
     """
     Searches for and returns the first secret that matches the following
     criteria in the order described:
@@ -37,7 +41,7 @@ def load(name: str, fallback: str = None) -> str:
       4. The provided fallback (if any)
     """
     secret = (
-        _load_from_run_secrets(name)
+        _load_from_run_secrets(name, lowercase)
         or _load_from_environment_hint(name)
         or _load_from_environment_variable(name)
         or fallback
